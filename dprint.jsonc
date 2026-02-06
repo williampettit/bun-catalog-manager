@@ -1,0 +1,128 @@
+{
+  "indentWidth": 2,
+  "lineWidth": 100,
+  "useTabs": false,
+  "typescript": {
+    // Common
+    "bracePosition": "sameLineUnlessHanging",
+    "operatorPosition": "maintain",
+    "preferHanging": false,
+    "preferSingleLine": false,
+    "quoteProps": "consistent",
+    "quoteStyle": "alwaysDouble",
+    "semiColons": "always",
+    "singleBodyPosition": "nextLine",
+    "spaceSurroundingProperties": true,
+    "trailingCommas": "onlyMultiLine",
+    "useBraces": "always",
+
+    // Arguments + Parameters
+    "arguments.preferHanging": "never",
+    "arguments.preferSingleLine": false,
+    "parameters.preferHanging": "never",
+    "parameters.preferSingleLine": false,
+
+    // Arrays + Objects
+    "arrayExpression.preferHanging": "never",
+    "arrayExpression.preferSingleLine": false,
+    "arrayPattern.preferHanging": false,
+    "arrayPattern.preferSingleLine": false,
+    "objectExpression.preferHanging": false,
+    "objectExpression.preferSingleLine": false,
+    "objectPattern.preferHanging": false,
+    "objectPattern.preferSingleLine": false,
+
+    // Member Expressions
+    "memberExpression.linePerExpression": false,
+    "memberExpression.preferSingleLine": false,
+
+    // Arrow Functions
+    "arrowFunction.useParentheses": "force",
+
+    // Binary Expressions
+    "binaryExpression.linePerExpression": true,
+    "binaryExpression.operatorPosition": "nextLine",
+    "binaryExpression.preferSingleLine": false,
+
+    // Class Declarations + Expressions
+    "classDeclaration.bracePosition": "sameLineUnlessHanging",
+    "classExpression.bracePosition": "sameLineUnlessHanging",
+
+    // Computed Expressions
+    "computed.preferSingleLine": false,
+
+    // Conditional Expressions
+    "conditionalExpression.operatorPosition": "nextLine",
+    "conditionalExpression.preferSingleLine": false,
+
+    // Extends + Implements Clauses
+    "extendsClause.preferHanging": false,
+    "implementsClause.preferHanging": false,
+
+    // Export + Import Declarations
+    "exportDeclaration.sortNamedExports": "caseInsensitive",
+    "exportDeclaration.sortTypeOnlyExports": "last",
+    "exportDeclaration.preferSingleLine": true,
+    "importDeclaration.sortNamedImports": "caseInsensitive",
+    "importDeclaration.sortTypeOnlyImports": "last",
+    "importDeclaration.preferSingleLine": true,
+    "module.sortExportDeclarations": "caseInsensitive",
+    "module.sortImportDeclarations": "caseInsensitive",
+
+    // JSX
+    "jsx.bracketPosition": "nextLine",
+    "jsx.forceNewLinesSurroundingContent": false,
+    "jsx.multiLineParens": "prefer",
+    "jsxAttributes.preferHanging": false,
+    "jsxAttributes.preferSingleLine": false,
+    "jsxElement.preferSingleLine": false,
+
+    // Mapped Types
+    "mappedType.preferSingleLine": false,
+
+    // Parentheses
+    "parentheses.preferSingleLine": false,
+
+    // Sequence Expressions
+    "sequenceExpression.preferHanging": false,
+
+    // Types
+    "conditionalType.operatorPosition": "nextLine",
+    "conditionalType.preferSingleLine": false,
+    "tupleType.preferHanging": "never",
+    "tupleType.preferSingleLine": false,
+    "typeLiteral.preferHanging": false,
+    "typeLiteral.preferSingleLine": false,
+    "typeParameters.preferHanging": "never",
+    "typeParameters.preferSingleLine": false,
+    "unionAndIntersectionType.preferHanging": false,
+    "unionAndIntersectionType.preferSingleLine": false,
+
+    // Variable Statements
+    "variableStatement.preferHanging": false,
+    "variableStatement.preferSingleLine": false,
+  },
+  "includes": [
+    "src/**/*.ts",
+    "build.ts",
+    "package.json",
+    "tsconfig*.json",
+    ".vscode/**/*.json",
+    "vitest.config.ts",
+    "dprint.jsonc",
+  ],
+  "excludes": [
+    "**/node_modules",
+    "**/*-lock.json",
+    "**/bun.lock",
+  ],
+  "plugins": [
+    "https://plugins.dprint.dev/typescript-0.95.15.wasm",
+    "https://plugins.dprint.dev/json-0.21.1.wasm",
+    "https://plugins.dprint.dev/markdown-0.21.1.wasm",
+    "https://plugins.dprint.dev/toml-0.7.0.wasm",
+    "https://plugins.dprint.dev/g-plane/malva-v0.15.2.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.25.3.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm",
+  ],
+}
