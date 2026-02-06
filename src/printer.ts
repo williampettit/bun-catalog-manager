@@ -92,8 +92,10 @@ const boxHeader = (name: string, count: number, isFirst: boolean): AnsiDoc.AnsiD
     const fill = lw - chars;
 
     return Doc.hsep([
+      Doc.empty,
       Doc.annotate(Doc.text(name), DocStyle.Label),
       Doc.annotate(Doc.parenthesized(Doc.text(String(count))), DocStyle.Count),
+      Doc.empty,
     ]).pipe(
       Doc.surround(
         Doc.hcat([Doc.char(left), Doc.char(BoxChar.HBar)]).pipe(
