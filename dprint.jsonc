@@ -104,12 +104,11 @@
   },
   "includes": [
     "src/**/*.ts",
-    "build.ts",
-    "package.json",
-    "tsconfig*.json",
+    "test/**/*.ts",
+    "*.ts",
+    "*.json",
+    "*.jsonc",
     ".vscode/**/*.json",
-    "vitest.config.ts",
-    "dprint.jsonc",
   ],
   "excludes": [
     "**/node_modules",

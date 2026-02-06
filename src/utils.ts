@@ -1,6 +1,6 @@
 import { Command as PlatformCommand } from "@effect/platform";
 import { FileSystem, Path } from "@effect/platform";
-import { Effect, Either, Schema as S } from "effect";
+import { Effect, Schema as S } from "effect";
 
 import {
   PackageJson,

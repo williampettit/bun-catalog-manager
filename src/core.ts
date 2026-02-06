@@ -1,5 +1,5 @@
 import { Command as PlatformCommand, Terminal } from "@effect/platform";
-import { Console, Effect, Number as Num, Option, Record as R } from "effect";
+import { Effect, Number as Num, Option, Record as R } from "effect";
 
 import { CatalogNotFound } from "./errors";
 import { printAddedPackage, printCatalog, printInstalledPackage } from "./printer";

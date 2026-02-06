@@ -1,4 +1,4 @@
-import { Option, ParseResult, Pretty, Schema as S } from "effect";
+import { Option, ParseResult, Schema as S } from "effect";
 
 export const PackageName = S.NonEmptyTrimmedString.pipe(S.brand("PackageName")).annotations({
   identifier: "PackageName",
@@ -74,20 +74,34 @@ export const PackageJsonFromString = S.parseJson(PackageJson).annotations({
 });
 
 export const PackageSpec = S.transform(
-  S.Union(
-    S.TemplateLiteralParser(PackageName, "@", PackageVersion),
-    S.TemplateLiteralParser(PackageName),
-  ),
+  S.NonEmptyTrimmedString,
   S.Struct({
     packageName: PackageName,
     packageVersion: S.OptionFromSelf(PackageVersion),
   }),
   {
-    decode: (tuple) => ({ packageName: tuple[0], packageVersion: Option.fromNullable(tuple[2]) }),
+    decode: (input) => {
+      // For scoped packages (@scope/name), the version @ comes after the /
+      const sepIndex = input.startsWith("@")
+        ? input.indexOf("@", Math.max(input.indexOf("/"), 1))
+        : input.indexOf("@");
+
+      if (sepIndex > 0 && sepIndex < input.length - 1) {
+        return {
+          packageName: PackageName.make(input.slice(0, sepIndex)),
+          packageVersion: Option.some(PackageVersion.make(input.slice(sepIndex + 1))),
+        };
+      }
+
+      return {
+        packageName: PackageName.make(input),
+        packageVersion: Option.none(),
+      };
+    },
     encode: (_toI, toA) =>
       Option.match(toA.packageVersion, {
-        onNone: () => [toA.packageName] as const,
-        onSome: (version) => [toA.packageName, "@", version] as const,
+        onNone: () => toA.packageName as string,
+        onSome: (version) => `${toA.packageName}@${version}`,
       }),
   },
 ).annotations({ identifier: "PackageSpec" });
