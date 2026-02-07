@@ -5,7 +5,6 @@ const bundle = await Bun.build({
   outdir: "dist",
   target: "bun",
   minify: true,
-  external: ["yaml", "toml", "ini"],
   compile: {
     outfile: "catalog",
     autoloadDotenv: false,
