@@ -4,8 +4,8 @@ import { isAvailablePerLine } from "@effect/printer/PageWidth";
 import { Console, Effect, Option, Record as R } from "effect";
 
 import type {
-  Catalog,
   CatalogName,
+  Catalogs,
   PackageName,
   PackageVersion,
   VersionSpec,
@@ -140,12 +140,20 @@ const boxFooter: AnsiDoc.AnsiDoc = hRule(BoxChar.BottomLeft, BoxChar.BottomRight
 // Catalog Printers
 // =============================================================================
 
-export const printCatalog = (
-  catalogs: ReadonlyArray<readonly [CatalogName, Catalog]>,
-  lineWidth: number,
-) =>
+export const printCatalog = (catalogs: Catalogs, lineWidth: number) =>
   Effect.gen(function*() {
-    const sections = catalogs.map(([name, catalog]) => ({
+    // Sort catalogs by name, with "default" first
+    const sortedCatalogs = R.toEntries(catalogs).sort(([a], [b]) => {
+      if (a === "default") {
+        return -1;
+      }
+      if (b === "default") {
+        return 1;
+      }
+      return a.localeCompare(b);
+    });
+
+    const sections = sortedCatalogs.map(([name, catalog]) => ({
       name,
       entries: R.toEntries(catalog).sort(([a], [b]) => a.localeCompare(b)),
     }));

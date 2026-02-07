@@ -50,11 +50,7 @@ const packageJsonPath = Options.file("package-json", { exists: "yes" }).pipe(
   Options.mapEffect(
     Option.match({
       onSome: (path) => Effect.succeed(path),
-      onNone: () =>
-        Effect.gen(function*() {
-          const path = yield* Path.Path;
-          return path.join(process.cwd(), "package.json");
-        }),
+      onNone: () => Effect.map(Path.Path, (path) => path.join(process.cwd(), "package.json")),
     }),
   ),
   Options.withSchema(PackageJsonPath),
@@ -126,8 +122,6 @@ export const cli = Command.make("catalog").pipe(
 
 if (import.meta.main) {
   cli(process.argv).pipe(
-    Effect.tap(() => Console.log("Bun Catalog Manager", VERSION)),
-    Effect.tapError(() => Console.log("Bun Catalog Manager", VERSION)),
     Effect.provide(CliConfig.layer({ showTypes: false, showBuiltIns: false })),
     Effect.provide(BunContext.layer),
     Effect.catchTags({

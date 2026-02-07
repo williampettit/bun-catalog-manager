@@ -2,7 +2,14 @@ import { describe, expect, it } from "@effect/vitest";
 import { Console, Effect, Option } from "effect";
 
 import { printAddedPackage, printCatalog, printInstalledPackage } from "../src/printer";
-import { CatalogName, PackageName, PackageVersion, VersionSpec, WorkspacePath } from "../src/types";
+import {
+  CatalogName,
+  Catalogs,
+  PackageName,
+  PackageVersion,
+  VersionSpec,
+  WorkspacePath,
+} from "../src/types";
 
 import { makeCapturingConsole } from "./fixtures";
 
@@ -12,15 +19,12 @@ describe("printer", () => {
   it.effect("printCatalog: empty section (emptyBoxRow) and tight pkgRow (gap <= 2)", () =>
     Effect.gen(function*() {
       const { mockConsole, getOutput } = yield* makeCapturingConsole;
-      const catalogs: ReadonlyArray<readonly [CatalogName, Record<string, PackageVersion>]> = [
-        [CatalogName.make("empty"), {}],
-        [
-          CatalogName.make("default"),
-          {
-            [PackageName.make("long-package-name")]: PackageVersion.make("1"),
-          },
-        ],
-      ];
+      const catalogs: Catalogs = {
+        [CatalogName.make("empty")]: {},
+        [CatalogName.make("default")]: {
+          [PackageName.make("long-package-name")]: PackageVersion.make("1"),
+        },
+      };
       yield* printCatalog(catalogs, 25).pipe(
         Effect.provide(layerWithConsole(mockConsole)),
       );

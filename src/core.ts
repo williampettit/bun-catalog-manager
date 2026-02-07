@@ -4,8 +4,8 @@ import { Effect, Number as Num, Option, Record as R } from "effect";
 import { CatalogNotFound } from "./errors";
 import { printAddedPackage, printCatalog, printInstalledPackage } from "./printer";
 import {
-  Catalog,
   CatalogName,
+  Catalogs,
   PackageJsonPath,
   PackageSpec,
   VersionSpec,
@@ -27,28 +27,24 @@ export const listCatalog = Effect.fn(
   function*({ packageJsonPath, catalogName }: ListCatalogParams) {
     const packageJson = yield* loadPackageJson(packageJsonPath);
     const terminal = yield* Terminal.Terminal;
-    const termCols = yield* terminal.columns.pipe(
-      Effect.map((cols) => cols > 0 ? cols : 80),
+
+    const catalogs: Catalogs = yield* Option.match(catalogName, {
+      onNone: () =>
+        Effect.succeed({
+          [CatalogName.make("default")]: packageJson.workspaces.catalog,
+          ...packageJson.workspaces.catalogs,
+        }),
+      onSome: (name) =>
+        Option.match(R.get(packageJson.workspaces.catalogs, name), {
+          onNone: () => new CatalogNotFound({ name }),
+          onSome: (catalog) => Effect.succeed({ [name]: catalog }),
+        }),
+    });
+
+    const lineWidth = yield* terminal.columns.pipe(
+      Effect.map((cols) => Num.clamp(cols, { minimum: 30, maximum: 80 })),
     );
 
-    let catalogs: ReadonlyArray<readonly [CatalogName, Catalog]>;
-
-    if (Option.isNone(catalogName)) {
-      catalogs = [
-        [CatalogName.make("default"), packageJson.workspaces.catalog],
-        ...R.toEntries(packageJson.workspaces.catalogs).sort(([a], [b]) => a.localeCompare(b)),
-      ];
-    } else {
-      const catalog = yield* R.get(packageJson.workspaces.catalogs, catalogName.value).pipe(
-        Option.match({
-          onNone: () => new CatalogNotFound({ name: catalogName.value }),
-          onSome: (catalog) => Effect.succeed(catalog),
-        }),
-      );
-      catalogs = [[catalogName.value, catalog]];
-    }
-
-    const lineWidth = Num.clamp(termCols, { minimum: 30, maximum: 80 });
     yield* printCatalog(catalogs, lineWidth);
   },
 );
@@ -66,10 +62,9 @@ export const addPackageToCatalog = Effect.fn(function*({
 }: AddPackageToCatalogParams) {
   const packageJson = yield* loadPackageJson(packageJsonPath);
 
-  const packageVersion = yield* Option.match(packageSpec.packageVersion, {
-    onNone: () => getLatestPackageVersion(packageSpec.packageName),
-    onSome: (version) => Effect.succeed(version),
-  });
+  const packageVersion = yield* packageSpec.packageVersion.pipe(
+    Effect.orElse(() => getLatestPackageVersion(packageSpec.packageName)),
+  );
 
   const nextWorkspaces: Workspaces = yield* Option.match(catalogName, {
     onNone: () =>
@@ -81,22 +76,20 @@ export const addPackageToCatalog = Effect.fn(function*({
         },
       }),
     onSome: (name) =>
-      R.get(packageJson.workspaces.catalogs, name).pipe(
-        Option.match({
-          onNone: () => new CatalogNotFound({ name }),
-          onSome: (catalog) =>
-            Effect.succeed({
-              ...packageJson.workspaces,
-              catalogs: {
-                ...packageJson.workspaces.catalogs,
-                [name]: {
-                  ...catalog,
-                  [packageSpec.packageName]: packageVersion,
-                },
+      Option.match(R.get(packageJson.workspaces.catalogs, name), {
+        onNone: () => new CatalogNotFound({ name }),
+        onSome: (catalog) =>
+          Effect.succeed({
+            ...packageJson.workspaces,
+            catalogs: {
+              ...packageJson.workspaces.catalogs,
+              [name]: {
+                ...catalog,
+                [packageSpec.packageName]: packageVersion,
               },
-            }),
-        }),
-      ),
+            },
+          }),
+      }),
   });
 
   yield* savePackageJson({ ...packageJson, workspaces: nextWorkspaces });

@@ -44,6 +44,13 @@ export const readSaved = (store: Ref.Ref<Map<string, string>>) =>
 // Mock Layers
 // =============================================================================
 
+export const MockPathLayer = BunPath.layer;
+
+export const MockTerminalLayer = Layer.mock(Terminal.Terminal, {
+  columns: Effect.succeed(80),
+  rows: Effect.succeed(24),
+});
+
 export const makeInMemoryFs = (initialFiles: Record<string, string>) =>
   Effect.gen(function*() {
     const store = yield* Ref.make(new Map(Object.entries(initialFiles)));
@@ -54,31 +61,26 @@ export const makeInMemoryFs = (initialFiles: Record<string, string>) =>
           Effect.flatMap((map) => {
             const content = map.get(path);
             if (content === undefined) {
-              return Effect.fail(
-                new SystemError({
-                  reason: "NotFound",
-                  module: "FileSystem",
-                  method: "readFileString",
-                  pathOrDescriptor: path,
-                  description: `File not found: ${path}`,
-                }),
-              );
+              return new SystemError({
+                reason: "NotFound",
+                module: "FileSystem",
+                method: "readFileString",
+                pathOrDescriptor: path,
+                description: `File not found: ${path}`,
+              });
             }
             return Effect.succeed(content);
           }),
         ),
-      writeFileString: (path, data) => Ref.update(store, (map) => new Map(map).set(path, data)),
+      writeFileString: (path, data) =>
+        Ref.update(
+          store,
+          (map) => new Map(map).set(path, data),
+        ),
     });
 
     return { fs, store } as const;
   });
-
-export const MockPathLayer = BunPath.layer;
-
-export const MockTerminalLayer = Layer.mock(Terminal.Terminal, {
-  columns: Effect.succeed(80),
-  rows: Effect.succeed(24),
-});
 
 export const makeMockCommandExecutor = (output: string) =>
   Layer.mock(CommandExecutor.CommandExecutor, {
