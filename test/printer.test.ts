@@ -4,11 +4,11 @@ import { Console, Effect, Option } from "effect";
 import { printAddedPackage, printCatalog, printInstalledPackage } from "../src/printer";
 import {
   CatalogName,
-  Catalogs,
   PackageName,
   PackageVersion,
-  VersionSpec,
   WorkspacePath,
+  type Catalogs,
+  type VersionSpec,
 } from "../src/types";
 
 import { makeCapturingConsole } from "./fixtures";

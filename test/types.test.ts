@@ -140,25 +140,12 @@ describe("PackageJsonFromString", () => {
       expect(result.workspaces.packages).toEqual(samplePackageJson.workspaces.packages);
     }));
 
-  it.effect("preserves extra top-level fields through roundtrip", () =>
+  it.effect("preserves extra fields through roundtrip", () =>
     Effect.gen(function*() {
       const decoded = yield* decode(samplePackageJsonString);
       const encoded = yield* encode(decoded);
-      const parsed = JSON.parse(encoded);
-      expect(parsed.name).toBe(samplePackageJson.name);
-      expect(parsed.version).toBe(samplePackageJson.version);
-      expect(parsed.scripts).toEqual(samplePackageJson.scripts);
-      expect(parsed.workspaces.catalog).toEqual(samplePackageJson.workspaces.catalog);
-      expect(parsed.workspaces.catalogs).toEqual(samplePackageJson.workspaces.catalogs);
-      expect(parsed.workspaces.packages).toEqual(samplePackageJson.workspaces.packages);
-    }));
-
-  it.effect("preserves extra workspaces fields through roundtrip", () =>
-    Effect.gen(function*() {
-      const decoded = yield* decode(samplePackageJsonString);
-      const encoded = yield* encode(decoded);
-      const parsed = JSON.parse(encoded);
-      expect(parsed.workspaces.customField).toBe("keep-me");
+      const parsed = JSON.parse(encoded) as unknown;
+      expect(parsed).toEqual(samplePackageJson);
     }));
 
   it.effect("fails on invalid JSON", () =>

@@ -13,7 +13,8 @@
     {
       "files": ["test/**/*.ts"],
       "rules": {
-        "max-lines-per-function": "off"
+        "max-lines-per-function": "off",
+        "max-lines": "off"
       }
     }
   ]

@@ -1,7 +1,7 @@
 import { CommandExecutor, FileSystem, Terminal } from "@effect/platform";
 import { BunPath } from "@effect/platform-bun";
 import { SystemError } from "@effect/platform/Error";
-import { Console, Effect, Layer, Ref } from "effect";
+import { Console, Effect, Layer, Ref, Schema as S } from "effect";
 
 // =============================================================================
 // Fixtures
@@ -35,9 +35,17 @@ export const samplePackageJsonString = JSON.stringify(samplePackageJson, null, 2
 /** Path that savePackageJson writes to (it uses process.cwd() + /package.json). */
 export const savedPath = () => `${process.cwd()}/package.json`;
 
-export const readSaved = (store: Ref.Ref<Map<string, string>>) =>
+export const readSaved = <A, I, R>(
+  store: Ref.Ref<Map<string, string>>,
+  schema: S.Schema<A, I, R>,
+) =>
   Ref.get(store).pipe(
-    Effect.map((map) => JSON.parse(map.get(savedPath())!)),
+    Effect.map((map) => map.get(savedPath())),
+    Effect.filterOrDieMessage(
+      (content) => content !== undefined,
+      "File not found in mock file system",
+    ),
+    Effect.flatMap((content) => S.decode(S.parseJson(schema))(content)),
   );
 
 // =============================================================================
@@ -79,7 +87,9 @@ export const makeInMemoryFs = (initialFiles: Record<string, string>) =>
         ),
     });
 
-    return { fs, store } as const;
+    const fsLayer = Layer.succeed(FileSystem.FileSystem, fs);
+
+    return { fs, store, fsLayer } as const;
   });
 
 export const makeMockCommandExecutor = (output: string) =>
@@ -92,6 +102,7 @@ export const makeMockCommandExecutor = (output: string) =>
 export const makeCapturingConsole = Effect.gen(function*() {
   const lines = yield* Ref.make<Array<string>>([]);
 
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const mockConsole: Console.Console = new Proxy({} as Console.Console, {
     get: (_target, prop) => {
       if (prop === Console.TypeId) {
@@ -102,6 +113,7 @@ export const makeCapturingConsole = Effect.gen(function*() {
           Ref.update(lines, (prev) => [...prev, args.map(String).join(" ")]);
       }
       if (prop === "unsafe") {
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         return new Proxy({} as Console.UnsafeConsole, {
           get: (_, p) => () => {
             throw new Error(`unsafe.${String(p)} not implemented`);

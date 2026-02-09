@@ -1,10 +1,10 @@
-import { FileSystem } from "@effect/platform";
 import { describe, expect, it } from "@effect/vitest";
 import { Console, Effect, Layer, Option } from "effect";
 
 import { addPackageToCatalog, installPackageToWorkspace, listCatalog } from "../src/core";
 import {
   CatalogName,
+  PackageJson,
   PackageJsonPath,
   PackageName,
   PackageVersion,
@@ -30,13 +30,13 @@ describe("addPackageToCatalog", () => {
 
   const makeTestLayers = ({ versionOutput = "18.0.0\n" }: { versionOutput?: string; } = {}) =>
     Effect.gen(function*() {
-      const { fs, store } = yield* makeInMemoryFs({
+      const { store, fsLayer } = yield* makeInMemoryFs({
         [testPath]: samplePackageJsonString,
       });
       const { mockConsole, getOutput } = yield* makeCapturingConsole;
 
       const layer = Layer.mergeAll(
-        Layer.succeed(FileSystem.FileSystem, fs),
+        fsLayer,
         MockPathLayer,
         MockTerminalLayer,
         makeMockCommandExecutor(versionOutput),
@@ -59,12 +59,21 @@ describe("addPackageToCatalog", () => {
         catalogName: Option.none(),
       }).pipe(Effect.provide(testLayer));
 
-      const saved = yield* readSaved(store);
-      expect(saved.workspaces.catalog["package-e"]).toBe("^3.0.0");
+      const saved = yield* readSaved(store, PackageJson);
+
+      expect(saved.workspaces.catalog[PackageName.make("package-e")]).toBe(
+        PackageVersion.make("^3.0.0"),
+      );
       // Existing entries preserved
-      expect(saved.workspaces.catalog["package-a"]).toBe("^1.0.0");
-      expect(saved.workspaces.catalog["package-b"]).toBe("2.0.0");
-      expect(saved.workspaces.catalog["@org/package-c"]).toBe("^3.0.0");
+      expect(saved.workspaces.catalog[PackageName.make("package-a")]).toBe(
+        PackageVersion.make("^1.0.0"),
+      );
+      expect(saved.workspaces.catalog[PackageName.make("package-b")]).toBe(
+        PackageVersion.make("2.0.0"),
+      );
+      expect(saved.workspaces.catalog[PackageName.make("@org/package-c")]).toBe(
+        PackageVersion.make("^3.0.0"),
+      );
 
       const output = yield* getOutput;
       expect(output).toContain("package-e");
@@ -85,11 +94,11 @@ describe("addPackageToCatalog", () => {
         catalogName: Option.none(),
       }).pipe(Effect.provide(testLayer));
 
-      const saved = yield* readSaved(store);
-      expect(saved.name).toBe("my-monorepo");
-      expect(saved.version).toBe("1.0.0");
-      expect(saved.private).toBe(true);
-      expect(saved.scripts).toEqual({ build: "tsc", test: "vitest" });
+      const saved = yield* readSaved(store, PackageJson);
+      expect(saved["name"]).toBe("my-monorepo");
+      expect(saved["version"]).toBe("1.0.0");
+      expect(saved["private"]).toBe(true);
+      expect(saved["scripts"]).toEqual({ build: "tsc", test: "vitest" });
     }));
 
   it.effect("adds package to named catalog", () =>
@@ -105,12 +114,18 @@ describe("addPackageToCatalog", () => {
         catalogName: Option.some(CatalogName.make("misc")),
       }).pipe(Effect.provide(testLayer));
 
-      const saved = yield* readSaved(store);
-      expect(saved.workspaces.catalogs.misc["package-f"]).toBe("^4.0.0");
+      const saved = yield* readSaved(store, PackageJson);
+      expect(
+        saved.workspaces.catalogs[CatalogName.make("misc")]?.[PackageName.make("package-f")],
+      ).toBe(PackageVersion.make("^4.0.0"));
       // Existing entry in same catalog preserved
-      expect(saved.workspaces.catalogs.misc["package-d"]).toBe("~2.0.0");
+      expect(
+        saved.workspaces.catalogs[CatalogName.make("misc")]?.[PackageName.make("package-d")],
+      ).toBe(PackageVersion.make("~2.0.0"));
       // Default catalog untouched
-      expect(saved.workspaces.catalog["package-a"]).toBe("^1.0.0");
+      expect(saved.workspaces.catalog[PackageName.make("package-a")]).toBe(
+        PackageVersion.make("^1.0.0"),
+      );
 
       const output = yield* getOutput;
       expect(output).toContain("package-f");
@@ -133,8 +148,10 @@ describe("addPackageToCatalog", () => {
         catalogName: Option.none(),
       }).pipe(Effect.provide(testLayer));
 
-      const saved = yield* readSaved(store);
-      expect(saved.workspaces.catalog["package-e"]).toBe("5.1.0");
+      const saved = yield* readSaved(store, PackageJson);
+      expect(saved.workspaces.catalog[PackageName.make("package-e")]).toBe(
+        PackageVersion.make("5.1.0"),
+      );
 
       const output = yield* getOutput;
       expect(output).toContain("package-e");
@@ -168,11 +185,11 @@ describe("listCatalog", () => {
   const testPath = PackageJsonPath.make("/repo/package.json");
 
   const makeListLayers = Effect.gen(function*() {
-    const { fs } = yield* makeInMemoryFs({ [testPath]: samplePackageJsonString });
+    const { fsLayer } = yield* makeInMemoryFs({ [testPath]: samplePackageJsonString });
     const { mockConsole, getOutput } = yield* makeCapturingConsole;
 
     const testLayer = Layer.mergeAll(
-      Layer.succeed(FileSystem.FileSystem, fs),
+      fsLayer,
       MockPathLayer,
       MockTerminalLayer,
       makeMockCommandExecutor("1.0.0"),
