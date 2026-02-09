@@ -1,4 +1,5 @@
-import { describe, expect, it } from "@effect/vitest";
+import { describe, it } from "@effect/vitest";
+import { assertInclude } from "@effect/vitest/utils";
 import { Console, Effect, Option } from "effect";
 
 import { printAddedPackage, printCatalog, printInstalledPackage } from "../src/printer";
@@ -29,9 +30,9 @@ describe("printer", () => {
         Effect.provide(layerWithConsole(mockConsole)),
       );
       const out = yield* getOutput;
-      expect(out).toContain("(empty)");
-      expect(out).toContain("long-package-name");
-      expect(out).toContain("1");
+      assertInclude(out, "(empty)");
+      assertInclude(out, "long-package-name");
+      assertInclude(out, "1");
     }));
 
   it.effect("printAddedPackage: catalogName Option.none uses default", () =>
@@ -43,9 +44,9 @@ describe("printer", () => {
         Option.none(),
       ).pipe(Effect.provide(layerWithConsole(mockConsole)));
       const out = yield* getOutput;
-      expect(out).toContain("default");
-      expect(out).toContain("pkg");
-      expect(out).toContain("1.0.0");
+      assertInclude(out, "default");
+      assertInclude(out, "pkg");
+      assertInclude(out, "1.0.0");
     }));
 
   it.effect("printInstalledPackage: with and without catalogName", () =>
@@ -65,7 +66,7 @@ describe("printer", () => {
         false,
       ).pipe(Effect.provide(layerWithConsole(mockConsole)));
       let out = yield* getOutput;
-      expect(out).toContain("cat");
+      assertInclude(out, "cat");
 
       yield* printInstalledPackage(
         withoutCatalog,
@@ -73,6 +74,6 @@ describe("printer", () => {
         true,
       ).pipe(Effect.provide(layerWithConsole(mockConsole)));
       out = yield* getOutput;
-      expect(out).toContain("(as a dev dependency)");
+      assertInclude(out, "(as a dev dependency)");
     }));
 });

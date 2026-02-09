@@ -1,4 +1,11 @@
-import { describe, expect, it } from "@effect/vitest";
+import { describe, it } from "@effect/vitest";
+import {
+  assertEquals,
+  assertFalse,
+  assertInclude,
+  assertTrue,
+  deepStrictEqual,
+} from "@effect/vitest/utils";
 import { Console, Effect, Layer, Option } from "effect";
 
 import { addPackageToCatalog, installPackageToWorkspace, listCatalog } from "../src/core";
@@ -61,24 +68,17 @@ describe("addPackageToCatalog", () => {
 
       const saved = yield* readSaved(store, PackageJson);
 
-      expect(saved.workspaces.catalog[PackageName.make("package-e")]).toBe(
-        PackageVersion.make("^3.0.0"),
-      );
+      assertEquals(saved.workspaces.catalog[PackageName.make("package-e")], "^3.0.0");
+
       // Existing entries preserved
-      expect(saved.workspaces.catalog[PackageName.make("package-a")]).toBe(
-        PackageVersion.make("^1.0.0"),
-      );
-      expect(saved.workspaces.catalog[PackageName.make("package-b")]).toBe(
-        PackageVersion.make("2.0.0"),
-      );
-      expect(saved.workspaces.catalog[PackageName.make("@org/package-c")]).toBe(
-        PackageVersion.make("^3.0.0"),
-      );
+      assertEquals(saved.workspaces.catalog[PackageName.make("package-a")], "^1.0.0");
+      assertEquals(saved.workspaces.catalog[PackageName.make("package-b")], "2.0.0");
+      assertEquals(saved.workspaces.catalog[PackageName.make("@org/package-c")], "^3.0.0");
 
       const output = yield* getOutput;
-      expect(output).toContain("package-e");
-      expect(output).toContain("^3.0.0");
-      expect(output).toContain("default");
+      assertInclude(output, "package-e");
+      assertInclude(output, "^3.0.0");
+      assertInclude(output, "default");
     }));
 
   it.effect("preserves all non-workspace fields", () =>
@@ -95,10 +95,10 @@ describe("addPackageToCatalog", () => {
       }).pipe(Effect.provide(testLayer));
 
       const saved = yield* readSaved(store, PackageJson);
-      expect(saved["name"]).toBe("my-monorepo");
-      expect(saved["version"]).toBe("1.0.0");
-      expect(saved["private"]).toBe(true);
-      expect(saved["scripts"]).toEqual({ build: "tsc", test: "vitest" });
+      assertEquals(saved["name"], "my-monorepo");
+      assertEquals(saved["version"], "1.0.0");
+      assertEquals(saved["private"], true);
+      deepStrictEqual(saved["scripts"], { build: "tsc", test: "vitest" });
     }));
 
   it.effect("adds package to named catalog", () =>
@@ -115,22 +115,23 @@ describe("addPackageToCatalog", () => {
       }).pipe(Effect.provide(testLayer));
 
       const saved = yield* readSaved(store, PackageJson);
-      expect(
-        saved.workspaces.catalogs[CatalogName.make("misc")]?.[PackageName.make("package-f")],
-      ).toBe(PackageVersion.make("^4.0.0"));
+
+      const miscCatalog = saved.workspaces.catalogs[CatalogName.make("misc")];
+      assertTrue(miscCatalog !== undefined);
+
+      // New entry added to named catalog
+      assertEquals(miscCatalog[PackageName.make("package-f")], "^4.0.0");
+
       // Existing entry in same catalog preserved
-      expect(
-        saved.workspaces.catalogs[CatalogName.make("misc")]?.[PackageName.make("package-d")],
-      ).toBe(PackageVersion.make("~2.0.0"));
+      assertEquals(miscCatalog[PackageName.make("package-d")], "~2.0.0");
+
       // Default catalog untouched
-      expect(saved.workspaces.catalog[PackageName.make("package-a")]).toBe(
-        PackageVersion.make("^1.0.0"),
-      );
+      assertEquals(saved.workspaces.catalog[PackageName.make("package-a")], "^1.0.0");
 
       const output = yield* getOutput;
-      expect(output).toContain("package-f");
-      expect(output).toContain("^4.0.0");
-      expect(output).toContain("misc");
+      assertInclude(output, "package-f");
+      assertInclude(output, "^4.0.0");
+      assertInclude(output, "misc");
     }));
 
   it.effect("fetches latest version when none provided", () =>
@@ -149,14 +150,12 @@ describe("addPackageToCatalog", () => {
       }).pipe(Effect.provide(testLayer));
 
       const saved = yield* readSaved(store, PackageJson);
-      expect(saved.workspaces.catalog[PackageName.make("package-e")]).toBe(
-        PackageVersion.make("5.1.0"),
-      );
+      assertEquals(saved.workspaces.catalog[PackageName.make("package-e")], "5.1.0");
 
       const output = yield* getOutput;
-      expect(output).toContain("package-e");
-      expect(output).toContain("5.1.0");
-      expect(output).toContain("default");
+      assertInclude(output, "package-e");
+      assertInclude(output, "5.1.0");
+      assertInclude(output, "default");
     }));
 
   it.effect("fails with CatalogNotFound for nonexistent catalog", () =>
@@ -172,8 +171,8 @@ describe("addPackageToCatalog", () => {
         catalogName: Option.some(CatalogName.make("nonexistent")),
       }).pipe(Effect.provide(testLayer), Effect.flip);
 
-      expect(result._tag).toBe("CatalogNotFound");
-      expect(result.message).toContain("nonexistent");
+      assertEquals(result._tag, "CatalogNotFound");
+      assertInclude(result.message, "nonexistent");
     }));
 });
 
@@ -209,11 +208,11 @@ describe("listCatalog", () => {
 
       const output = yield* getOutput;
       // Default catalog entries
-      expect(output).toContain("package-a");
-      expect(output).toContain("package-b");
-      expect(output).toContain("@org/package-c");
+      assertInclude(output, "package-a");
+      assertInclude(output, "package-b");
+      assertInclude(output, "@org/package-c");
       // Named catalog entries
-      expect(output).toContain("package-d");
+      assertInclude(output, "package-d");
     }));
 
   it.effect("lists a specific named catalog", () =>
@@ -226,9 +225,9 @@ describe("listCatalog", () => {
       }).pipe(Effect.provide(testLayer));
 
       const output = yield* getOutput;
-      expect(output).toContain("package-d");
+      assertInclude(output, "package-d");
       // Should only contain the requested catalog, not default
-      expect(output).not.toContain("package-a");
+      assertFalse(output.includes("package-a"));
     }));
 
   it.effect("fails with CatalogNotFound for unknown catalog", () =>
@@ -240,8 +239,8 @@ describe("listCatalog", () => {
         catalogName: Option.some(CatalogName.make("nonexistent")),
       }).pipe(Effect.provide(testLayer), Effect.flip);
 
-      expect(result._tag).toBe("CatalogNotFound");
-      expect(result.message).toContain("nonexistent");
+      assertEquals(result._tag, "CatalogNotFound");
+      assertInclude(result.message, "nonexistent");
     }));
 });
 
@@ -275,9 +274,9 @@ describe("installPackageToWorkspace", () => {
       }).pipe(Effect.provide(testLayer));
 
       const output = yield* getOutput;
-      expect(output).toContain("package-a");
-      expect(output).toContain("misc");
-      expect(output).toContain("packages/app");
+      assertInclude(output, "package-a");
+      assertInclude(output, "misc");
+      assertInclude(output, "packages/app");
     }));
 
   it.effect("prints default catalog when none specified", () =>
@@ -294,8 +293,8 @@ describe("installPackageToWorkspace", () => {
       }).pipe(Effect.provide(testLayer));
 
       const output = yield* getOutput;
-      expect(output).toContain("package-b");
-      expect(output).toContain("packages/lib");
-      expect(output).toContain("dev dependency");
+      assertInclude(output, "package-b");
+      assertInclude(output, "packages/lib");
+      assertInclude(output, "dev dependency");
     }));
 });
