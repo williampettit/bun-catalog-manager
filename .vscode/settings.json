@@ -1,6 +1,16 @@
 {
+  // Oxlint
+  "oxc.enable": true,
+  "oxc.typeAware": true,
+
+  // TypeScript Native Preview
+  "typescript.experimental.useTsgo": true,
+
+  // TypeScript
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // Dprint
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "dprint.dprint"
 }
