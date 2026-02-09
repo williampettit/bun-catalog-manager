@@ -41,7 +41,8 @@ export const Workspaces = S.Struct(
     catalog: Catalog,
     catalogs: Catalogs,
   },
-  S.Record({ key: S.String, value: S.Unknown }), // Allow excess properties
+  // Allow excess properties
+  S.Record({ key: S.String, value: S.Unknown }),
 ).annotations({
   identifier: "Workspaces",
   parseIssueTitle: () => "workspaces",
@@ -52,7 +53,8 @@ export const PackageJson = S.Struct(
   {
     workspaces: Workspaces,
   },
-  S.Record({ key: S.String, value: S.Unknown }), // Allow excess properties
+  // Allow excess properties
+  S.Record({ key: S.String, value: S.Unknown }),
 ).annotations({
   identifier: "PackageJson",
   parseIssueTitle: () => "package.json",
@@ -100,7 +102,7 @@ export const PackageSpec = S.transform(
     },
     encode: (_toI, toA) =>
       Option.match(toA.packageVersion, {
-        onNone: () => toA.packageName as string,
+        onNone: () => toA.packageName,
         onSome: (version) => `${toA.packageName}@${version}`,
       }),
   },

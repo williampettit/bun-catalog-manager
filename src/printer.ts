@@ -143,7 +143,7 @@ const boxFooter: AnsiDoc.AnsiDoc = hRule(BoxChar.BottomLeft, BoxChar.BottomRight
 export const printCatalog = (catalogs: Catalogs, lineWidth: number) =>
   Effect.gen(function*() {
     // Sort catalogs by name, with "default" first
-    const sortedCatalogs = R.toEntries(catalogs).sort(([a], [b]) => {
+    const sortedCatalogs = R.toEntries(catalogs).toSorted(([a], [b]) => {
       if (a === "default") {
         return -1;
       }
@@ -155,7 +155,7 @@ export const printCatalog = (catalogs: Catalogs, lineWidth: number) =>
 
     const sections = sortedCatalogs.map(([name, catalog]) => ({
       name,
-      entries: R.toEntries(catalog).sort(([a], [b]) => a.localeCompare(b)),
+      entries: R.toEntries(catalog).toSorted(([a], [b]) => a.localeCompare(b)),
     }));
 
     const rows: Array<AnsiDoc.AnsiDoc> = [];

@@ -5,12 +5,12 @@ import { CatalogNotFound } from "./errors";
 import { printAddedPackage, printCatalog, printInstalledPackage } from "./printer";
 import {
   CatalogName,
-  Catalogs,
-  PackageJsonPath,
-  PackageSpec,
-  VersionSpec,
-  WorkspacePath,
-  Workspaces,
+  type Catalogs,
+  type PackageJsonPath,
+  type PackageSpec,
+  type VersionSpec,
+  type WorkspacePath,
+  type Workspaces,
 } from "./types";
 import { getLatestPackageVersion, loadPackageJson, savePackageJson } from "./utils";
 
@@ -107,19 +107,17 @@ export const installPackageToWorkspace = Effect.fn(function*({
   workspacePath,
   saveDev,
 }: InstallPackageToWorkspaceParams) {
+  const catalogName = Option.getOrElse(versionSpec.catalogName, () => "");
+  const formattedPackage = `${versionSpec.packageName}@catalog:${catalogName}`;
+
   yield* PlatformCommand.make(
     "bun",
-    ...[
-      "add",
-      ...(saveDev ? ["-d"] : []),
-      `${versionSpec.packageName}@catalog:${
-        versionSpec.catalogName.pipe(Option.getOrElse(() => ""))
-      }`,
-    ],
+    "add",
+    ...(saveDev ? ["-d"] : []),
+    formattedPackage,
   ).pipe(
     PlatformCommand.workingDirectory(workspacePath),
     PlatformCommand.string,
-    Effect.map((output) => output.trim()),
   );
 
   yield* printInstalledPackage(versionSpec, workspacePath, saveDev);

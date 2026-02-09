@@ -49,7 +49,11 @@ const packageJsonPath = Options.file("package-json", { exists: "yes" }).pipe(
   Options.mapEffect(
     Option.match({
       onSome: (path) => Effect.succeed(path),
-      onNone: () => Effect.map(Path.Path, (path) => path.join(process.cwd(), "package.json")),
+      onNone: () =>
+        Effect.gen(function*() {
+          const path = yield* Path.Path;
+          return path.join(process.cwd(), "package.json");
+        }),
     }),
   ),
   Options.withSchema(PackageJsonPath),

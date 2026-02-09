@@ -17,11 +17,9 @@ import {
 export const getLatestPackageVersion = Effect.fn(function*(packageName: PackageName) {
   return yield* PlatformCommand.make(
     "bun",
-    ...[
-      "info",
-      packageName,
-      "version",
-    ],
+    "info",
+    packageName,
+    "version",
   ).pipe(
     PlatformCommand.workingDirectory("."),
     PlatformCommand.string,
