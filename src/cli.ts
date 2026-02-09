@@ -36,7 +36,6 @@ import { Path } from "@effect/platform";
 import { BunContext, BunRuntime } from "@effect/platform-bun";
 import { Console, Effect, Option } from "effect";
 
-import { version as VERSION } from "../package.json";
 import { addPackageToCatalog, installPackageToWorkspace, listCatalog } from "./core";
 import { CatalogName, PackageJsonPath, PackageSpec, VersionSpec, WorkspacePath } from "./types";
 
@@ -111,7 +110,7 @@ export const cli = Command.make("catalog").pipe(
   ]),
   Command.run({
     name: "Bun Catalog Manager",
-    version: VERSION,
+    version: __VERSION__,
     summary: Span.text("Manage your Bun package catalog."),
   }),
 );

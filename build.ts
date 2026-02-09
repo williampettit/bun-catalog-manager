@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+import { version as VERSION } from "./package.json";
+
 const bundle = await Bun.build({
   entrypoints: ["src/cli.ts"],
   outdir: "dist",
@@ -9,6 +11,9 @@ const bundle = await Bun.build({
     outfile: "catalog",
     autoloadDotenv: false,
     autoloadBunfig: false,
+  },
+  define: {
+    __VERSION__: JSON.stringify(VERSION),
   },
 });
 
